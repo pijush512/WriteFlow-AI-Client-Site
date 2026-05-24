@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Button } from "../ui/button";
 import { ThemeToggle } from "../theme-toggle";
 import { Sparkles, Menu, X } from "lucide-react";
+import Link from "next/link";
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -44,8 +45,8 @@ export function Navbar() {
           <a href="/blog" onClick={() => setMobileMenuOpen(false)} className="font-medium">Blog</a>
           <a href="/contact" onClick={() => setMobileMenuOpen(false)} className="font-medium">Contact</a>
           <hr />
-          <a href="/login" className="w-full"><Button variant="outline" className="w-full">Login</Button></a>
-          <a href="/register" className="w-full"><Button className="w-full">Start Writing Free</Button></a>
+          <link href="/login" className="w-full"><Button variant="outline" className="w-full">Login</Button> </link>
+          <link href="/register" className="w-full"><Button className="w-full">Start Writing Free</Button></link>
         </div>
       )}
     </header>

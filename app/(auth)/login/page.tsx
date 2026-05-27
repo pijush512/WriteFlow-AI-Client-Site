@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context"; // আমাদের কাস্টমuseAuth হুক ইমপোর্ট করা হলো
 import { Button } from "@/components/ui/button";
@@ -151,7 +152,7 @@ export default function LoginPage() {
           variant="outline" 
           className="w-full gap-2 font-medium" 
           disabled={isLoading} 
-          onClick={() => alert("Google Provider Integration Pending...")}
+          onClick={() => signIn("google", { callbackUrl: "/" })}
         >
           <svg className="h-4 w-4 mr-1" viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />

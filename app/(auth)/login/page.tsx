@@ -74,15 +74,44 @@ export default function LoginPage() {
   };
 
   // Demo Login One-Click Handler (ডাটাবেজে থাকা টেস্ট ক্রেডেনশিয়াল সেট করার জন্য)
-  const handleDemoLogin = (role: "user" | "admin") => {
-    setServerError("");
-    setServerSuccess("");
-    // আপনার ডাটাবেজে যে ডেমো ইমেইলগুলো দিয়ে অ্যাকাউন্ট ক্রিয়েট করবেন, সেগুলো এখানে বসিয়ে দিতে পারেন
-    const targetEmail = role === "user" ? "user@writeflow.com" : "admin@writeflow.com";
-    setEmail(targetEmail);
-    setPassword("123456");
-    setErrors({});
-  };
+ // LoginPage.tsx এর ভেতরে handleDemoLogin ফাংশনটি এইভাবে আপডেট করুন:
+
+const handleDemoLogin = async (role: "user" | "admin") => {
+  setServerError("");
+  setServerSuccess("");
+  
+  const targetEmail = role === "user" ? "user@writeflow.com" : "admin@writeflow.com";
+  const targetPassword = "123456";
+
+  setEmail(targetEmail);
+  setPassword(targetPassword);
+
+  // অটোমেটিক সাবমিট করার জন্য আমরা সরাসরি handleLogin কল করতে পারি অথবা আলাদাভাবে fetch করতে পারি
+  setIsLoading(true);
+  try {
+    const response = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: targetEmail, password: targetPassword }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Demo login failed.");
+    }
+
+    setServerSuccess("Demo login successful!");
+    setTimeout(() => {
+      login(data.user); // আপনার কাস্টম কন্টেক্সট হুক
+      router.push("/");
+    }, 500);
+  } catch (err: any) {
+    setServerError(err.message);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
     <Card className="border-border shadow-lg bg-card text-card-foreground">

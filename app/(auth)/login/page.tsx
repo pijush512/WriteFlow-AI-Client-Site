@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/auth-context"; // আমাদের কাস্টমuseAuth হুক ইমপোর্ট করা হলো
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,6 +11,7 @@ import { LogIn, ShieldAlert, CheckCircle2, User, ShieldCheck } from "lucide-reac
 
 export default function LoginPage() {
   const router = useRouter();
+  const { login } = useAuth(); // প্রোভাইডার থেকে login ফাংশনটি আনা হলো
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
@@ -30,8 +32,8 @@ export default function LoginPage() {
     return Object.keys(tempErrors).length === 0;
   };
 
-  // Submit Handler
-  const handleLogin = (e: React.FormEvent) => {
+  // Submit Handler (রিয়েল ব্যাকএন্ড কানেকশন)
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setServerError("");
     setServerSuccess("");
@@ -40,27 +42,41 @@ export default function LoginPage() {
 
     setIsLoading(true);
     
-    // Simulated Authentication API Call
-    setTimeout(() => {
-      if (
-        (email === "user@writeflow.com" && password === "123456") ||
-        (email === "admin@writeflow.com" && password === "123456")
-      ) {
-        setServerSuccess("Login successful! Redirecting to workspace...");
-        setTimeout(() => {
-          router.push("/");
-        }, 1500);
-      } else {
-        setServerError("Invalid email or password. Try using Demo Accounts!");
-        setIsLoading(false);
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Invalid email or password.");
       }
-    }, 1200);
+
+      setServerSuccess("Login successful! Redirecting to workspace...");
+      
+      // এই এক লাইনে ইউজার গ্লোবাল স্টেট ও LocalStorage-এ সেভ হবে এবং ড্যাশবোর্ডে চলে যাবে
+      setTimeout(() => {
+        login(data.user);
+        router.push("/");
+      }, 1000);
+
+    } catch (err: any) {
+      setServerError(err.message || "Failed to connect to server.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // Demo Login One-Click Handler
+  // Demo Login One-Click Handler (ডাটাবেজে থাকা টেস্ট ক্রেডেনশিয়াল সেট করার জন্য)
   const handleDemoLogin = (role: "user" | "admin") => {
     setServerError("");
     setServerSuccess("");
+    // আপনার ডাটাবেজে যে ডেমো ইমেইলগুলো দিয়ে অ্যাকাউন্ট ক্রিয়েট করবেন, সেগুলো এখানে বসিয়ে দিতে পারেন
     const targetEmail = role === "user" ? "user@writeflow.com" : "admin@writeflow.com";
     setEmail(targetEmail);
     setPassword("123456");
@@ -78,7 +94,7 @@ export default function LoginPage() {
       <CardContent className="space-y-4">
         {/* Success and Error Alerts */}
         {serverError && (
-          <div className="flex items-center gap-2 p-3 text-xs bg-destructive/10 border border-destructive/20 text-destructive rounded-lg font-medium animate-shake">
+          <div className="flex items-center gap-2 p-3 text-xs bg-destructive/10 border border-destructive/20 text-destructive rounded-lg font-medium">
             <ShieldAlert className="h-4 w-4 shrink-0" /> {serverError}
           </div>
         )}
@@ -130,7 +146,7 @@ export default function LoginPage() {
           <div className="relative flex justify-center text-xs uppercase"><span className="bg-card px-2 text-muted-foreground font-medium">Or continue with</span></div>
         </div>
 
-        {/* Google Social Login - Replaced Chrome with colorful SVG */}
+        {/* Google Social Login */}
         <Button 
           variant="outline" 
           className="w-full gap-2 font-medium" 

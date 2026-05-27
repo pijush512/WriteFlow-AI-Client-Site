@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useState } from "react";
+import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { UserPlus, CheckCircle2 } from "lucide-react";
+import { UserPlus, CheckCircle2, AlertCircle } from "lucide-react"; // AlertCircle আইকন যোগ করা হয়েছে
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -15,9 +16,10 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<{ name?: string; email?: string; password?: string }>({});
   const [serverSuccess, setServerSuccess] = useState("");
+  const [serverError, setServerError] = useState(""); // ব্যাকএন্ড এরর হ্যান্ডেল করার জন্য
   const [isLoading, setIsLoading] = useState(false);
 
-  // ফর্ম ভ্যালিডেশন লজিক
+  // ফর্ম ভ্যালিডেশন লজিক (ফ্রন্টএন্ড চেক)
   const validateForm = () => {
     const tempErrors: { name?: string; email?: string; password?: string } = {};
     if (!name.trim()) tempErrors.name = "Full name is required";
@@ -32,22 +34,52 @@ export default function RegisterPage() {
     return Object.keys(tempErrors).length === 0;
   };
 
-  // সাবমিট হ্যান্ডলার
-  const handleRegister = (e: React.FormEvent) => {
+  // সাবমিট হ্যান্ডলার (রিয়েল ব্যাকএন্ড কানেকশন)
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setServerSuccess("");
+    setServerError("");
 
     if (!validateForm()) return;
 
     setIsLoading(true);
 
-    // সিমুলেটেড রেজিস্ট্রেশন API কল
-    setTimeout(() => {
+    try {
+      // আমাদের তৈরি করা আসল রেজিস্ট্রেশন API-তে রিকোয়েস্ট পাঠানো হচ্ছে
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name, email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        // ব্যাকএন্ড যদি কোনো এরর পাঠায় (যেমন: ইমেইল ডুপ্লিকেট হলে)
+        throw new Error(data.error || "Something went wrong.");
+      }
+
+      // একাউন্ট তৈরি সফল হলে
       setServerSuccess("Account created successfully! Preparing your environment...");
+      
+      // ফর্ম ফিল্ডগুলো ক্লিয়ার করে দেওয়া
+      setName("");
+      setEmail("");
+      setPassword("");
+
+      // ১.৫ সেকেন্ড পর ইউজারকে কাস্টম লগইন পেজে পাঠিয়ে দেওয়া
       setTimeout(() => {
-        router.push("/dashboard");
+        router.push("/");
       }, 1500);
-    }, 1200);
+
+    } catch (err: any) {
+      // সার্ভার বা নেটওয়ার্ক এরর ক্যাচ করা
+      setServerError(err.message || "Failed to connect to server.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -59,10 +91,18 @@ export default function RegisterPage() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        
         {/* সাকসেস মেসেজ অ্যালার্ট */}
         {serverSuccess && (
           <div className="flex items-center gap-2 p-3 text-xs bg-green-500/10 border border-green-500/20 text-green-500 rounded-lg font-medium">
             <CheckCircle2 className="h-4 w-4 shrink-0" /> {serverSuccess}
+          </div>
+        )}
+
+        {/* সার্ভার এরর মেসেজ অ্যালার্ট */}
+        {serverError && (
+          <div className="flex items-center gap-2 p-3 text-xs bg-destructive/10 border border-destructive/20 text-destructive rounded-lg font-medium">
+            <AlertCircle className="h-4 w-4 shrink-0" /> {serverError}
           </div>
         )}
 
@@ -115,12 +155,12 @@ export default function RegisterPage() {
           <div className="relative flex justify-center text-xs uppercase"><span className="bg-card px-2 text-muted-foreground font-medium">Or join with</span></div>
         </div>
 
-        {/* Google Social Login - কালারফুল SVG দিয়ে ক্রোম আইকন রিপ্লেস করা হয়েছে */}
+        {/* Google Social Login */}
         <Button 
           variant="outline" 
           className="w-full gap-2 font-medium" 
           disabled={isLoading} 
-          onClick={() => alert("Google Signup Pending...")}
+          onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
         >
           <svg className="h-4 w-4 mr-1" viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />

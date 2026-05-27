@@ -103,7 +103,7 @@ const handleDemoLogin = async (role: "user" | "admin") => {
 
     setServerSuccess("Demo login successful!");
     setTimeout(() => {
-      login(data.user); // আপনার কাস্টম কন্টেক্সট হুক
+      login(data.user); 
       router.push("/");
     }, 500);
   } catch (err: any) {

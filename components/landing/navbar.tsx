@@ -109,8 +109,10 @@ export function Navbar() {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-9 w-9 rounded-full">
                   <Avatar className="h-9 w-9">
-                    <AvatarImage src={user?.image || ""} alt={user?.name || "User"} />
-                    <AvatarFallback>{user?.name?.[0] || "U"}</AvatarFallback>
+                    {/* <AvatarImage src={user?.image || ""} alt={user?.name || "User"} />
+                    <AvatarFallback>{user?.name?.[0] || "U"}</AvatarFallback> */}
+                    <AvatarImage src={(user as any)?.avatar || ""} alt={(user as any)?.name || "User"} />
+  <AvatarFallback>{(user as any)?.name?.[0] || "U"}</AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>

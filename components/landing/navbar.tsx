@@ -134,10 +134,14 @@ export function Navbar() {
                   className="relative h-9 w-9 rounded-full"
                 >
                   <Avatar className="h-9 w-9">
+                    <AvatarImage
+                      src={user?.image || ""}
+                      alt={user?.name || "User"}
+                    />
+                    <AvatarFallback>
+                      {(user as any)?.name?.[0] ?? "U"}
+                    </AvatarFallback>
                     
-                    <AvatarImage src={(user as any)?.avatar ?? (user as any)?.image ?? ""} alt={(user as any)?.name ?? "User"} />
-  <AvatarFallback>{(user as any)?.name?.[0] ?? "U"}</AvatarFallback>
-
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>

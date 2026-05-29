@@ -47,7 +47,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = () => {
     setUser(null);
     localStorage.removeItem("writeflow_user");
-    router.push("/login"); // লগআউট হলে লগইন পেজে ব্যাক করাবে
+    router.push("/"); // লগআউট হলে লগইন পেজে ব্যাক করাবে
   };
 
   return (

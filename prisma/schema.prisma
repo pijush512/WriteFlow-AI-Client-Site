@@ -4,14 +4,26 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
-  id        String   @id @default(cuid())
+  id        String     @id @default(cuid())
   name      String?
-  email     String   @unique
+  email     String     @unique
   password  String?  
-  role      String   @default("user") 
+  role      String     @default("user") 
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  documents Document[] // ইউজারের সাথে ডকুমেন্টের রিলেশন
+}
+
+model Document {
+  id        String   @id @default(cuid())
+  title     String
+  content   String   @db.Text
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
